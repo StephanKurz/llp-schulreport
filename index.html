@@ -56,6 +56,8 @@ const SUPABASE_ANON_KEY = "sb_publishable_KOKp9n1ocMOuE1i-ivllhQ_TPX9-1XG";
 const LETZTE_ZEILEN_ZENTRIERT = 8;
 let currentSchoolId = null;
 let currentSchoolBtn = null;
+let currentOriginalBedarf = null;
+let currentOriginalObergrenze = null;
 // Schulen, die der Nutzer bereits während dieses Seitenaufrufs bearbeitet hat - verhindert,
 // dass der beim Laden gestartete Hintergrund-Refresh (siehe unten) eine frische Eingabe mit
 // den zum Ladezeitpunkt noch alten Werten überschreibt, falls er erst NACH dem Speichern
@@ -139,6 +141,8 @@ function clamp(value, min, max) {
 
 function openModal(schoolId, schoolName, currentBedarf, currentObergrenze, currentUrl, anchorRect, rowIndex, totalRows) {
   currentSchoolId = schoolId;
+  currentOriginalBedarf = currentBedarf === '–' ? null : parseInt(currentBedarf, 10);
+  currentOriginalObergrenze = currentObergrenze === '–' ? null : parseInt(currentObergrenze, 10);
   document.getElementById('modal-school-name').textContent = schoolName;
   document.getElementById('modal-bedarf-input').value = currentBedarf === '–' ? '' : currentBedarf;
   document.getElementById('modal-obergrenze-input').value = currentObergrenze === '–' ? '' : currentObergrenze;
@@ -270,7 +274,11 @@ document.getElementById('modal-save-btn').addEventListener('click', function() {
     document.querySelector('.bedarf-value[data-school-id="' + currentSchoolId + '"]').textContent = bedarfValue === null ? '–' : bedarfValue;
     document.querySelector('.obergrenze-value[data-school-id="' + currentSchoolId + '"]').textContent = obergrenzeValue === null ? '–' : obergrenzeValue;
     updateAmpelDot(currentSchoolId);
-    updateDatumCell(currentSchoolId, new Date().toISOString(), bedarfValue !== null || obergrenzeValue !== null);
+    // Datum nur aktualisieren, wenn sich Bedarf oder Obergrenze tatsächlich geändert haben -
+    // eine reine URL-Änderung darf das Datum nicht anfassen (siehe RPC-Logik serverseitig).
+    if (bedarfValue !== currentOriginalBedarf || obergrenzeValue !== currentOriginalObergrenze) {
+      updateDatumCell(currentSchoolId, new Date().toISOString(), bedarfValue !== null || obergrenzeValue !== null);
+    }
     if (currentSchoolBtn) {
       currentSchoolBtn.dataset.schulUrl = urlValue || '';
       updateSchoolLink(currentSchoolId, urlValue, currentSchoolBtn.dataset.schoolName);
