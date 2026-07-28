@@ -22,20 +22,21 @@
 /*
  * Generische Informations-/Bestätigungsseite im Corporate Design von MENTOR - Leselern-Paten
  * Reutlingen e.V. (Vereinsfarbe #bd0010, Kopfgrafik) - projektübergreifend wiederverwendbar,
- * nicht an ein einzelnes Projekt gebunden.
+ * nicht an ein einzelnes Projekt gebunden. Unterstützt eine beliebige Anzahl Buttons (nicht
+ * nur zwei) über einen JSON-kodierten `buttons`-Parameter.
  *
- * Aufruf: page.html?heading=...&text=...
- *   &buttonLabel=...&postTo=<vollständige, bereits urlencodete Ziel-URL inkl. eigener Query-Parameter>
- *   &secondaryButtonLabel=...&secondaryText=<wird nach Klick angezeigt, KEIN Request>
+ * Aufruf: page.html?heading=...&text=...&buttons=<urlencodetes JSON-Array>
  *
- * `heading`/`text`/`secondaryText` werden ausschließlich als reiner Text eingefügt
+ * Jedes Element von `buttons`: {"label": "...", "postTo": "..."} löst per POST (leerer
+ * Body) eine echte Aktion an `postTo` aus - die Server-Antwort (z.B. einer Edge Function)
+ * wird direkt angezeigt. {"label": "...", "resultText": "..."} löst KEINEN Request aus,
+ * sondern zeigt nur `resultText` clientseitig an (z.B. für einen Abbrechen-/"Doch,
+ * gerne"-Fall ohne Änderung am Ausgangszustand). Optional "style": "primary" (Vereinsfarbe
+ * gefüllt) - ohne Angabe ist ein Button "secondary" (Vereinsfarbe umrandet).
+ *
+ * `heading`/`text`/`resultText` werden ausschließlich als reiner Text eingefügt
  * (textContent, kein innerHTML) - sicher gegenüber HTML-/Script-Injection über die
  * URL-Parameter, auch wenn der Link öffentlich (z.B. per E-Mail) verschickt wird.
- *
- * Der Haupt-Button (primary) löst per POST an `postTo` eine echte Aktion aus. Der optionale
- * zweite Button (secondary) löst KEINE Aktion/Netzwerk-Request aus - er zeigt nur
- * `secondaryText` an (z.B. für einen "Doch, gerne"-Abbrechen-Fall, bei dem sich am
- * Ausgangszustand nichts ändern muss).
  */
 function param(name) {
   return new URLSearchParams(window.location.search).get(name);
@@ -43,10 +44,16 @@ function param(name) {
 
 var heading = param("heading") || "MENTOR - Leselern-Paten Reutlingen e.V.";
 var text = param("text") || "";
-var buttonLabel = param("buttonLabel");
-var postTo = param("postTo");
-var secondaryButtonLabel = param("secondaryButtonLabel");
-var secondaryText = param("secondaryText") || "Alles klar, keine Änderung vorgenommen.";
+var buttons = [];
+var buttonsParam = param("buttons");
+if (buttonsParam) {
+  try {
+    buttons = JSON.parse(buttonsParam);
+    if (!Array.isArray(buttons)) buttons = [];
+  } catch (e) {
+    buttons = [];
+  }
+}
 
 var content = document.getElementById("content");
 content.innerHTML = "";
@@ -61,35 +68,38 @@ if (text) {
   content.appendChild(p);
 }
 
-if ((buttonLabel && postTo) || secondaryButtonLabel) {
+if (buttons.length > 0) {
   var buttonRow = document.createElement("div");
   buttonRow.className = "buttons";
 
-  if (buttonLabel && postTo) {
-    var form = document.createElement("form");
-    form.method = "POST";
-    form.action = postTo;
-    var primaryButton = document.createElement("button");
-    primaryButton.type = "submit";
-    primaryButton.className = "primary";
-    primaryButton.textContent = buttonLabel;
-    form.appendChild(primaryButton);
-    buttonRow.appendChild(form);
-  }
+  buttons.forEach(function (btn) {
+    if (!btn || !btn.label) return;
+    var styleClass = btn.style === "primary" ? "primary" : "secondary";
 
-  if (secondaryButtonLabel) {
-    var secondaryButton = document.createElement("button");
-    secondaryButton.type = "button";
-    secondaryButton.className = "secondary";
-    secondaryButton.textContent = secondaryButtonLabel;
-    secondaryButton.addEventListener("click", function () {
-      content.innerHTML = "";
-      var doneP = document.createElement("p");
-      doneP.textContent = secondaryText;
-      content.appendChild(doneP);
-    });
-    buttonRow.appendChild(secondaryButton);
-  }
+    if (btn.postTo) {
+      var form = document.createElement("form");
+      form.method = "POST";
+      form.action = btn.postTo;
+      var submitButton = document.createElement("button");
+      submitButton.type = "submit";
+      submitButton.className = styleClass;
+      submitButton.textContent = btn.label;
+      form.appendChild(submitButton);
+      buttonRow.appendChild(form);
+    } else {
+      var actionButton = document.createElement("button");
+      actionButton.type = "button";
+      actionButton.className = styleClass;
+      actionButton.textContent = btn.label;
+      actionButton.addEventListener("click", function () {
+        content.innerHTML = "";
+        var doneP = document.createElement("p");
+        doneP.textContent = btn.resultText || "Alles klar, keine Änderung vorgenommen.";
+        content.appendChild(doneP);
+      });
+      buttonRow.appendChild(actionButton);
+    }
+  });
 
   content.appendChild(buttonRow);
 }
