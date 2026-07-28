@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>MENTOR Leselern-Paten Reutlingen e.V.</title>
+<style>
+  :root { --brand: #bd0010; }
+  body{font-family:Helvetica,Arial,sans-serif;max-width:480px;margin:60px auto;padding:0 20px;color:#000;}
+  img.header{max-width:100%;display:block;margin-bottom:24px;}
+  h1{color:var(--brand);font-size:20px;}
+  p{font-size:11pt;line-height:1.5;}
+  button{background:var(--brand);color:#fff;border:none;border-radius:4px;padding:10px 22px;font-size:11pt;font-weight:bold;cursor:pointer;}
+</style>
+</head>
+<body>
+<img class="header" src="https://www.leselern-paten.org/files/E-Mail-Signatur_V1_4.png" alt="MENTOR Leselern-Paten Reutlingen e.V.">
+<div id="content">Lädt ...</div>
+<script>
+/*
+ * Generische Informations-/Bestätigungsseite im Corporate Design von MENTOR - Leselern-Paten
+ * Reutlingen e.V. (Vereinsfarbe #bd0010, Kopfgrafik) - projektübergreifend wiederverwendbar,
+ * nicht an ein einzelnes Projekt gebunden. Zeigt Überschrift/Text an, optional einen Button,
+ * der per POST an eine beliebige URL (postTo) schickt.
+ *
+ * Aufruf: page.html?heading=...&text=...&buttonLabel=...&postTo=<vollständige, bereits
+ * urlencodete Ziel-URL inkl. eigener Query-Parameter>
+ *
+ * `heading`/`text` werden ausschließlich als reiner Text eingefügt (textContent, kein
+ * innerHTML) - sicher gegenüber HTML-/Script-Injection über die URL-Parameter, auch wenn
+ * der Link öffentlich (z.B. per E-Mail) verschickt wird.
+ */
+function param(name) {
+  return new URLSearchParams(window.location.search).get(name);
+}
+
+var heading = param("heading") || "MENTOR - Leselern-Paten Reutlingen e.V.";
+var text = param("text") || "";
+var buttonLabel = param("buttonLabel");
+var postTo = param("postTo");
+
+var content = document.getElementById("content");
+content.innerHTML = "";
+
+var h1 = document.createElement("h1");
+h1.textContent = heading;
+content.appendChild(h1);
+
+if (text) {
+  var p = document.createElement("p");
+  p.textContent = text;
+  content.appendChild(p);
+}
+
+if (buttonLabel && postTo) {
+  var form = document.createElement("form");
+  form.method = "POST";
+  form.action = postTo;
+  var button = document.createElement("button");
+  button.type = "submit";
+  button.textContent = buttonLabel;
+  form.appendChild(button);
+  content.appendChild(form);
+}
+</script>
+</body>
+</html>
