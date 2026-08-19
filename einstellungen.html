@@ -35,6 +35,10 @@
   .name{font-weight:bold;font-size:11.5pt;}
   .zeile.aus .name{color:var(--grau);}
   .empfaenger{font-size:9.5pt;color:var(--rot);margin-top:1px;}
+  .zeitpunkt{font-size:9.5pt;color:#000;margin-top:1px;}
+  .zeitpunkt b{color:var(--rot);}
+  .zeile.aus .zeitpunkt{color:var(--grau);}
+  .zeile.aus .zeitpunkt b{color:var(--grau);}
   .zeile.aus .empfaenger{color:var(--grau);}
   .beschreibung{font-size:9.5pt;color:var(--grau);margin-top:2px;}
   .warnung{font-size:9.5pt;color:var(--orange);margin-top:3px;font-weight:bold;display:none;}
@@ -148,12 +152,20 @@ function zeileBauen(eintrag) {
   empf.className = "empfaenger";
   empf.textContent = "An: " + eintrag.empfaenger;
 
+  var zeit = document.createElement("div");
+  zeit.className = "zeitpunkt";
+  var zeitLabel = document.createElement("b");
+  zeitLabel.textContent = "Wann: ";
+  zeit.appendChild(zeitLabel);
+  zeit.appendChild(document.createTextNode(eintrag.zeitpunkt || "nicht hinterlegt"));
+
   var besch = document.createElement("div");
   besch.className = "beschreibung";
   besch.textContent = eintrag.beschreibung;
 
   text.appendChild(name);
   text.appendChild(empf);
+  text.appendChild(zeit);
   text.appendChild(besch);
 
   if (WARNUNGEN[eintrag.automation_name]) {
