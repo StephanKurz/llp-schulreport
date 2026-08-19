@@ -18,16 +18,16 @@
     /* Zentriert und in der Breite begrenzt: die Seite steht in einem iframe, dessen Breite
        die einbettende Seite bestimmt. Ohne max-width wuerden die Zeilen auf breiten
        Bildschirmen quer ueber die volle Fensterbreite laufen. */
-    margin:0 auto;padding:16px;max-width:760px;
+    margin:0 auto;padding:12px;max-width:760px;
     color:#000;background:#fff;
     font-size:11pt;line-height:1.5;
   }
-  h1{font-size:17px;margin:0 0 4px;color:#000;}
-  .unterzeile{font-size:10pt;color:var(--grau);margin:0 0 18px;}
+  h1{font-size:17px;margin:0 0 3px;color:#000;}
+  .unterzeile{font-size:10pt;color:var(--grau);margin:0 0 12px;}
   .liste{border:1px solid var(--rahmen);border-radius:6px;overflow:hidden;}
   .zeile{
     display:flex;align-items:flex-start;gap:14px;
-    padding:14px 16px;border-bottom:1px solid var(--rahmen);background:#fff;
+    padding:10px 14px;border-bottom:1px solid var(--rahmen);background:#fff;
   }
   .zeile:last-child{border-bottom:none;}
   .zeile.aus{background:var(--hellgrau);}
@@ -36,8 +36,8 @@
   .zeile.aus .name{color:var(--grau);}
   .empfaenger{font-size:9.5pt;color:var(--rot);margin-top:1px;}
   .zeile.aus .empfaenger{color:var(--grau);}
-  .beschreibung{font-size:9.5pt;color:var(--grau);margin-top:4px;}
-  .warnung{font-size:9.5pt;color:var(--orange);margin-top:5px;font-weight:bold;display:none;}
+  .beschreibung{font-size:9.5pt;color:var(--grau);margin-top:2px;}
+  .warnung{font-size:9.5pt;color:var(--orange);margin-top:3px;font-weight:bold;display:none;}
   .zeile.aus .warnung{display:block;}
 
   /* Schalter: echte Checkbox, nur optisch als Schieber - bleibt tastatur- und
@@ -62,11 +62,11 @@
   .schalter input:disabled{cursor:progress;}
   .schalter input:disabled ~ .spur{opacity:.5;}
 
-  #status{margin-top:14px;font-size:10pt;min-height:20px;}
+  #status{margin-top:10px;font-size:10pt;min-height:18px;}
   #status.fehler{color:var(--rot);font-weight:bold;}
   #status.ok{color:var(--grau);}
   .hinweis{
-    margin-top:16px;padding:12px 14px;background:var(--hellgrau);
+    margin-top:10px;padding:10px 12px;background:var(--hellgrau);
     border-left:4px solid var(--rot);font-size:9.5pt;color:#333;
   }
   .hinweis b{color:var(--rot);}
@@ -246,6 +246,13 @@ fetch(SUPABASE_URL + "/rest/v1/automation_mail_settings?select=*&order=sortierun
   });
 
 window.addEventListener("load", hoeheMelden);
+
+// Meldet die Hoehe auch dann, wenn sich das Layout sonstwie aendert - etwa weil ein
+// Warnhinweis ein- oder ausgeblendet wird oder die einbettende Seite den iframe
+// schmaler zieht und dadurch mehr Zeilen umbrechen.
+if (window.ResizeObserver) {
+  new ResizeObserver(hoeheMelden).observe(document.body);
+}
 </script>
 </body>
 </html>
